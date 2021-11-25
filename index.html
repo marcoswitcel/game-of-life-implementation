@@ -4,9 +4,42 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Implementação de Conway's Game of Life</title>
+    <meta name="description" content="Implementação de Conway's Game of Life feita por João Marcos de Vargas Witcel">
+    <meta name="author" content="João Marcos de Vargas Witcel">
+    <style>
+        .controles {
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 1px dotted black;
+            margin-bottom: 15px;
+        }
+        .controles > * {
+            vertical-align: middle;
+            display: inline-block;
+        }
+        canvas {
+            display: block;
+            margin: auto;
+            max-width: 100vw;
+        }
+    </style>
 </head>
 <body>
+    <div class="controles">
+        <button id="playButton">Começar</button>
+        <button id="pauseButton">Pausar</button>
+        <label for="backgroundColorInput">
+            Cor de fundo: 
+        </label>
+        <input type="color" name="bgColor" id="backgroundColorInput">
+        <label for="cellColorInput">
+            Cor das células:
+        </label>
+        <input type="color" name="cellColor" id="cellColorInput">
+    </div>
+    <div id="canvasWrapper">
+    </div>
     <script type="module" src="main.js"></script>
 </body>
 </html>

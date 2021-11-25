@@ -1,48 +1,50 @@
-import { canvasFactory, clear } from "./utils.js";
 import { RGBA } from "./colors.js";
-import { CellGrid } from "./life.js";
+import { CellGrid, GridDisplay } from "./life.js";
+import { setPageTitle } from "./utils.js";
+
+const GRID_SIZE = 650;
+const FPS = 30;
+
+const defaultDeadColor = new RGBA(0,0,100);
+const defaultAliveColor = new RGBA(100, 100, 100);
+
+const cellGrid = new CellGrid(GRID_SIZE, GRID_SIZE, true, 23, { deadColor: defaultDeadColor, aliveColor: defaultAliveColor });
+const display = new GridDisplay(cellGrid, null,FPS);
+// const canvas = display.canvas;
+// const ctx = canvas.getContext('2d');
+// const fbo = ctx.getImageData(0, 0, GRID_SIZE, GRID_SIZE);
+
+cellGrid.seed();
+
+// setPageTitle('Game of Life');
+
+const elementContainer = document.getElementById('canvasWrapper');
+/** @type {HTMLInputElement} */ //@ts-expect-error
+const backgroundColorInput = document.getElementById('backgroundColorInput');
+/** @type {HTMLInputElement} */ //@ts-expect-error
+const cellColorInput = document.getElementById('cellColorInput');
+const playButton = document.getElementById('playButton');
+const pauseButton = document.getElementById('pauseButton');
+
+backgroundColorInput.value = defaultDeadColor.toHexString();
+cellColorInput.value = defaultAliveColor.toHexString();
 
 
-const GRID_SIZE = 800;
-// const GRID_SIZE = 500;
+backgroundColorInput.addEventListener('change', (_) => {
+    cellGrid.deadColor = RGBA.fromString(backgroundColorInput.value).irgba;
+})
+cellColorInput.addEventListener('change', (_) => {
+    cellGrid.aliveColor = RGBA.fromString(cellColorInput.value).irgba;
+    RGBA.fromString(cellColorInput.value);
+})
 
-const canvas = canvasFactory({
-    width: GRID_SIZE,
-    height: GRID_SIZE,
-    appendTo: document.body
+playButton.addEventListener('click', (event) => {
+    elementContainer.appendChild(display.canvas);
+    display.start();
+    setPageTitle('Running - Game of Life');
 });
 
-const ctx = canvas.getContext('2d');
-const fbo = ctx.getImageData(0, 0, GRID_SIZE, GRID_SIZE);
-
-const grid = new CellGrid(GRID_SIZE, GRID_SIZE, true, { deadColor: new RGBA(0,0,100).irgba });
-
-grid.seed();
-
-
-let lastTime = 0;
-let elapsedTime = 0;
-requestAnimationFrame(function update(time) {
-    
-    const deltatime = time - lastTime;
-    lastTime = time;
-    elapsedTime = elapsedTime + deltatime;
-
-    
-    if (elapsedTime < 1000/2) {
-        requestAnimationFrame(update);
-        return;
-    }
-    
-    elapsedTime = 0;
-    
-    
-    
-    grid.nextGen();
-    
-    grid.render(fbo);
-    
-    ctx.putImageData(fbo, 0, 0);
-
-    requestAnimationFrame(update);
+pauseButton.addEventListener('click', (event) => {
+    display.stop();
+    setPageTitle('Paused - Game of Life');
 });

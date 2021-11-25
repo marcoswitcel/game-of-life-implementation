@@ -1,4 +1,6 @@
 import { RGBA } from "./colors.js";
+import { mulberry32 } from "./prng.js";
+import { canvasFactory } from "./utils.js";
 
 // const NUMBER_OF_NEIGHBOURS = Symbol('Cell.numberOfNeighbours');
 
@@ -45,23 +47,23 @@ export class Cell {
          * 
          * @url fonte: https://www.conwaylife.com/wiki/Conway%27s_Game_of_Life
          */
-
         for (const cell of cells) {
             const numberOfNeighbours = cell.numberOfNeighboursAlive();
     
-            if (cell.alive) {
+            if (cell.alive === 0) {
+                if (numberOfNeighbours === 3) {
+                    cell.temp = 1;
+                } else {
+                    cell.temp = 0;
+                }                
+            } else {
                 if (numberOfNeighbours === 2 || numberOfNeighbours === 3) {
                     cell.temp = 1;
                 } else {
                     cell.temp = 0;
                 }
-            } else if (numberOfNeighbours === 3) {
-                cell.temp = 1;
-            } else {
-                cell.temp = 0;
             }
         }
-        
     }
 
     computeNextGenState() {
@@ -76,6 +78,10 @@ export class Cell {
         }
     }
 
+    /**
+     * 
+     * @returns {Number} Retorna o número de vizinhos vivos
+     */
     numberOfNeighboursAlive() {
         return (
             this.t.alive +
@@ -91,7 +97,7 @@ export class Cell {
 }
 
 export class CellGrid {
-    constructor(gridWidth, gridHeight, autoInit = false, options = {}) {
+    constructor(gridWidth, gridHeight, autoInit = false, autoSeed = null, options = {}) {
         /** @const */
         this.WIDTH = gridWidth;
         /** @const */
@@ -104,13 +110,22 @@ export class CellGrid {
         if (autoInit) {
             this.init();
         }
+        if (autoSeed) {
+            this.seed(autoSeed);
+        }
 
         this.generation = 0;
 
-        this.deadColor = options.deadColor ? options.deadColor : new RGBA(50, 50, 50).irgba;
-        this.aliveColor = options.aliveColor ? options.aliveColor : new RGBA(100, 100, 100).irgba
+        this.deadColor = options.deadColor ? options.deadColor.irgba : new RGBA(50, 50, 50).irgba;
+        this.aliveColor = options.aliveColor ? options.aliveColor.irgba : new RGBA(100, 100, 100).irgba;
+
+        this.deadColor |= 0;
+        this.aliveColor |= 0;
     }
 
+    /**
+     * 
+     */
     init() {
         const grid = this.grid;
 
@@ -148,26 +163,25 @@ export class CellGrid {
         }
     }
 
-    seed() {
+    seed(seed) {
+        const seeder = mulberry32(seed);
         const grid = this.grid;
 
         for (let x = this.WIDTH; x--;) {
             for (let y = this.HEIGHT; y--;) {
                 const cell = grid[y * this.WIDTH + x];
                 
-               cell.alive = +(Math.random() > 0.8);
+               cell.alive = +(seeder() > 0.8);
             }
         }
+
+        this.generation = 0;
     }
 
     nextGen() {
-        console.time('nextGenTick');
+
         Cell.computeNextGenState(this.grid);
-        // for (const cell of this.grid) {
-        //     cell.computeNextGenState();
-        // }
         Cell.swap(this.grid);
-        console.timeEnd('nextGenTick');
 
         this.generation++;
     }
@@ -186,5 +200,73 @@ export class CellGrid {
             uint32bitArray[i] = this.grid[i].alive ? aliveColor : deadColor;
         }
 
+    }
+}
+
+export class GridDisplay {
+    /**
+     * @param {CellGrid} cellGrid 
+     * @param {HTMLElement} [appendTo] Elemento ao qual o canvas deve ser adicionado,
+     * caso não quiser adicionar o canvas ao elemento automaticamente,
+     * pode ignorar esse atributo
+     */
+    constructor(cellGrid, appendTo = null, FPS = 20) {
+        /** @const @type {CellGrid} */
+        this.cellGrid = cellGrid;
+        /** @const @type {HTMLCanvasElement} */
+        this.canvas = canvasFactory({
+            width: cellGrid.WIDTH,
+            height: cellGrid.HEIGHT,
+            pixelated: true,
+            appendTo: appendTo
+        });
+
+        this.FPS = 1000/FPS;
+
+        this.ctx = this.canvas.getContext('2d');
+        this.fbo = this.ctx.getImageData(0, 0, cellGrid.WIDTH, cellGrid.HEIGHT);
+        /** @type {'paused'|'running'|'not-started'} */
+        this.state = 'not-started';
+    }
+
+    start() {
+        if (this.state === 'not-started' || this.state === 'paused') {
+            this.state = 'running';
+            let lastTime = 0;
+            let elapsedTime = 0;
+
+            const update = (time) => {
+                if (this.state === 'paused') return;
+
+                const deltatime = time - lastTime;
+                lastTime = time;
+                elapsedTime = elapsedTime + deltatime;
+    
+                
+                if (elapsedTime < this.FPS) {
+                    requestAnimationFrame(update);
+                    return;
+                }
+                
+                elapsedTime = 0;
+                
+                // console.time('asd');
+                this.cellGrid.nextGen();
+                // console.timeEnd('asd');
+                this.cellGrid.render(this.fbo);
+                this.ctx.putImageData(this.fbo, 0, 0);
+    
+                requestAnimationFrame(update);
+            }
+
+            requestAnimationFrame(update);
+        }
+
+    }
+
+    stop() {
+        if (this.state === 'running') {
+            this.state = 'paused';
+        }
     }
 }
