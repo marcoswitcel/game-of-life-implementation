@@ -7,14 +7,14 @@ const FPS = 30;
 
 const defaultDeadColor = new RGBA(0,0,100);
 const defaultAliveColor = new RGBA(100, 100, 100);
+const seed = (15210 + Math.random() * 15275) | 0;
 
-const cellGrid = new CellGrid(GRID_SIZE, GRID_SIZE, true, 23, { deadColor: defaultDeadColor, aliveColor: defaultAliveColor });
+const cellGrid = new CellGrid(GRID_SIZE, GRID_SIZE, true, seed, { deadColor: defaultDeadColor, aliveColor: defaultAliveColor });
 const display = new GridDisplay(cellGrid, null,FPS);
 // const canvas = display.canvas;
 // const ctx = canvas.getContext('2d');
 // const fbo = ctx.getImageData(0, 0, GRID_SIZE, GRID_SIZE);
 
-cellGrid.seed();
 
 // setPageTitle('Game of Life');
 
