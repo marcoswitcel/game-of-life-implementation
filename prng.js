@@ -1,5 +1,5 @@
 /**
- * @note Fonte do algortímo `mulberry32`
+ * @note Fonte do algoritmo `mulberry32`
  * @url https://github.com/bryc/code/blob/master/jshash/PRNGs.md
  */
 
