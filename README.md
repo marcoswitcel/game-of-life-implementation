@@ -7,6 +7,8 @@ O objetivo com essa implementação era aprender mais sobre `Life`, que é a for
 
 Apenas clone o projeto e suba um servidor HTTP na pasta raiz, daí é só acessar o `index.html`. Para desenvolvimento eu usei o [Visual Studio Code](https://code.visualstudio.com/) e a extensão [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer).
 
+Link público: [https://marcoswitcel.github.io/game-of-life-implementation/](https://marcoswitcel.github.io/game-of-life-implementation/)
+
 ## Referências
 
 Coloquei logo a seguir alguns dos links que li para realizar a implementação, alguns links abaixo apenas proveram a noção necessária para distinguir alguns conceitos como `PRNG`.
